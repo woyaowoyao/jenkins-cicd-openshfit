@@ -1,6 +1,22 @@
-= OpenShift Tasks
+= Jenkins CICD on OpenShift(java tasks)
 
-== What is it?
+https://github.com/woyaowoyao/jenkins-cicd-openshfit
+
+clone from https://homework-gitea.apps.shared.na.openshift.opentlc.com/dongdong/openshift-tasks 
+
+rm -rf .git
+git init
+git add README.md
+git commit -m "first commit"
+git remote add origin https://github.com/woyaowoyao/jenkins-cicd-openshfit.git
+git push -u origin master
+                
+https://github.com/woyaowoyao/jenkins-cicd-openshfit
+
+
+
+
+== java code description: OpenShift Tasks. What is it?
 
 The `tasks-rs` quickstart demonstrates how to implement a JAX-RS service that uses JPA 2.0 persistence deployed to Red Hat JBoss Enterprise Application Platform.
 
