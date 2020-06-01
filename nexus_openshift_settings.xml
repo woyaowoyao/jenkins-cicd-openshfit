@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<settings>
+  <mirrors>
+    <mirror>
+      <id>nexus</id>
+      <name>Nexus Public Mirror</name>
+      <url>http://nexus.405f-nexus.svc.cluster.local:8081/repository/maven-all-public/</url>
+      <mirrorOf>*</mirrorOf>
+    </mirror>
+  </mirrors>
+  <servers>
+    <server>
+      <id>nexus</id>
+      <username>admin</username>
+      <password>qwert12345</password>
+    </server>
+  </servers>
+</settings>
+
