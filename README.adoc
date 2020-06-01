@@ -5,13 +5,18 @@ https://github.com/woyaowoyao/jenkins-cicd-openshfit
 clone from https://homework-gitea.apps.shared.na.openshift.opentlc.com/dongdong/openshift-tasks 
 
 rm -rf .git
+
 git init
-git add README.md
+
+git add .
+
 git commit -m "first commit"
+
 git remote add origin https://github.com/woyaowoyao/jenkins-cicd-openshfit.git
+
 git push -u origin master
                 
-https://github.com/woyaowoyao/jenkins-cicd-openshfit
+
 
 
 
