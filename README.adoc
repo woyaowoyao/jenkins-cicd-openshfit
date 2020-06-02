@@ -43,9 +43,24 @@ oc get pods
 #<your-nexus-pod> nexus-1-vc8vv
 
 export NEXUS_PASSWORD=$(oc rsh nexus-1-vc8vv cat /nexus-data/admin.password)
+ export NEXUS_PASSWORD=qwert12345
 echo $NEXUS_PASSWORD
 
 qwert12345
+curl -o setup_nexus3.sh -s https://raw.githubusercontent.com/redhat-gpte-devopsautomation/ocp_advanced_development_resources/master/nexus/setup_nexus3.sh
+chmod +x setup_nexus3.sh
+./setup_nexus3.sh admin $NEXUS_PASSWORD http://$(oc get route nexus --template='{{ .spec.host }}')
+rm setup_nexus3.sh
+
+vi /etc/hosts
+#add
+192.168.85.13  nexus-cicd-nexus.apps.os311.test.it.example.com
+192.168.85.13  sonarqube-cicd-sonarqube.apps.os311.test.it.example.com
+192.168.85.13  jenkins-cicd-jenkins.apps.os311.test.it.example.com
+
+
+oc expose dc nexus --port=5000 --name=nexus-registry
+oc create route edge nexus-registry --service=nexus-registry --port=5000
 
 
 == Setup sonarqube
@@ -74,6 +89,8 @@ oc set probe dc/sonarqube --readiness --failure-threshold 3 --initial-delay-seco
 oc patch dc/sonarqube --type=merge -p '{"spec": {"template": {"metadata": {"labels": {"tuned.openshift.io/elasticsearch": "true"}}}}}'
 
 oc rollout resume dc sonarqube
+
+
 
 
 == Setup Jenkins
