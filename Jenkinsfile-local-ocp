@@ -1,5 +1,5 @@
 // Set your project Prefix using your GUID
-def prefix      = "405f"
+def prefix      = "cicd"
 
 // Set variable globally to be available in all stages
 // Set Maven command to always include Nexus Settings
@@ -24,7 +24,7 @@ pipeline {
 stage('Checkout Source') {
   steps {
     // Replace the credentials with your credentials.
-    git credentialsId: 'gitgogs', url: "https://homework-gitea.apps.shared.na.openshift.opentlc.com/dongdong/openshift-tasks.git"
+    git credentialsId: 'gogs', url: "https://homework-gitea.apps.shared.na.openshift.opentlc.com/dongdong/openshift-tasks.git"
     // or when using the Pipeline from the repo itself:
     // checkout scm
 
