@@ -206,7 +206,7 @@ sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds opens
           // Update the Image on the Production Deployment Config
           def dc = openshift.selector("dc/${destApp}").object()
 
-          dc.spec.template.spec.containers[0].image="image-registry.openshift-image-registry.svc:5000/${devProject}/tasks:${prodTag}"
+          dc.spec.template.spec.containers[0].image="docker-registry.default.svc:5000/${devProject}/tasks:${prodTag}"
 
           openshift.apply(dc)
 

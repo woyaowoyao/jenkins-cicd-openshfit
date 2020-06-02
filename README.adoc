@@ -62,6 +62,9 @@ vi /etc/hosts
 oc expose dc nexus --port=5000 --name=nexus-registry
 oc create route edge nexus-registry --service=nexus-registry --port=5000
 
+mvn -s ./nexus_openshift_settings.xml sonar:sonar -Dsonar.host.url=http://sonarqube-405f-sonarqube.apps.shared.na.openshift.opentlc.com/ -Dsonar.projectName=test1 -Dsonar.projectVersion=0"
+mvn -s ./nexus_openshift_settings.xml sonar:sonar -Dsonar.host.url=http://sonarqube-cicd-sonarqube.apps.os311.test.it.example.com/ -Dsonar.projectName=test1 -Dsonar.projectVersion=0"
+mvn -s ./nexus_openshift_settings.xml deploy -DskipTests=true -DaltDeploymentRepository=nexus::default::http://nexus-cicd-nexus.apps.os311.test.it.example.com:8081/repository/maven-public" 
 
 == Setup sonarqube
 
@@ -137,6 +140,11 @@ oc set volume dc/tasks --add --name=jboss-config1 --mount-path=/opt/eap/standalo
 
 
 oc new-project ${GUID}-tasks-prod --display-name "${GUID} Tasks Prod"
+
+
+oc policy add-role-to-group system:image-puller system:serviceaccounts:${GUID}-tasks-prod -n ${GUID}-tasks-dev
+oc policy add-role-to-user edit system:serviceaccount:${GUID}-jenkins:jenkins -n ${GUID}-tasks-prod
+
 l.	# Create Blue Application
 oc new-app ${GUID}-tasks-dev/tasks:0.0 --name=tasks-blue --allow-missing-imagestream-tags=true -n ${GUID}-tasks-prod
 oc set triggers dc/tasks-blue --remove-all -n ${GUID}-tasks-prod
