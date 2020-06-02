@@ -24,7 +24,7 @@ pipeline {
 stage('Checkout Source') {
   steps {
     // Replace the credentials with your credentials.
-    git credentialsId: 'gogs', url: "https://homework-gitea.apps.shared.na.openshift.opentlc.com/dongdong/openshift-tasks.git"
+    git credentialsId: 'github', url: "https://github.com/woyaowoyao/jenkins-cicd-openshfit.git"
     // or when using the Pipeline from the repo itself:
     // checkout scm
 
@@ -66,7 +66,7 @@ stage('Checkout Source') {
       steps {
         script {
           echo "Running Code Analysis"
-            sh "${mvnCmd} sonar:sonar -Dsonar.host.url=http://sonarqube-405f-sonarqube.apps.shared.na.openshift.opentlc.com/ -Dsonar.projectName=${JOB_BASE_NAME} -Dsonar.projectVersion=${devTag}"
+            sh "${mvnCmd} sonar:sonar -Dsonar.host.url=http://sonarqube-cicd-sonarqube.apps.os311.test.it.example.com/ -Dsonar.projectName=${JOB_BASE_NAME} -Dsonar.projectVersion=${devTag}"
         }
       }
     }
@@ -75,7 +75,7 @@ stage('Checkout Source') {
     stage('Publish to Nexus') {
       steps {
         echo "Publish to Nexus"
-        sh "${mvnCmd} deploy -DskipTests=true -DaltDeploymentRepository=nexus::default::http://nexus.${prefix}-nexus.svc.cluster.local:8081/repository/releases"
+        sh "${mvnCmd} deploy -DskipTests=true -DaltDeploymentRepository=nexus::default::http://nexus-cicd-nexus.apps.os311.test.it.example.com:8081/repository/releases"
       }
     }
 
@@ -93,7 +93,7 @@ stage('Build and Tag OpenShift Image') {
           openshift.selector("bc", "tasks").startBuild("--from-file=./target/openshift-tasks.war", "--wait=true")
 
           // OR use the file you just published into Nexus:
-          // "--from-file=http://nexus.${prefix}-nexus.svc.cluster.local:8081/repository/releases/org/jboss/quickstarts/eap/tasks/${version}/tasks-${version}.war"
+          // "--from-file=http://nexus-cicd-nexus.apps.os311.test.it.example.com:8081/repository/releases/org/jboss/quickstarts/eap/tasks/${version}/tasks-${version}.war"
           openshift.tag("tasks:latest", "tasks:${devTag}")
         }
       }
@@ -110,10 +110,10 @@ stage('Build and Tag OpenShift Image') {
       openshift.withCluster() {
         openshift.withProject("${devProject}") {
           // OpenShift 4
-          openshift.set("image", "dc/tasks", "tasks=image-registry.openshift-image-registry.svc:5000/${devProject}/tasks:${devTag}")
+          //openshift.set("image", "dc/tasks", "tasks=image-registry.openshift-image-registry.svc:5000/${devProject}/tasks:${devTag}")
 
           // For OpenShift 3 use this:
-          // openshift.set("image", "dc/tasks", "tasks=docker-registry.default.svc:5000/${devProject}/tasks:${devTag}")
+           openshift.set("image", "dc/tasks", "tasks=docker-registry.default.svc:5000/${devProject}/tasks:${devTag}")
 
           // Update the Config Map which contains the users for the Tasks application
           // (just in case the properties files changed in the latest commit)
@@ -153,7 +153,7 @@ stage('Build and Tag OpenShift Image') {
       if (status != "201") {
           error 'Integration Create Test Failed!'
       }
-
+/*
       echo "Retrieving tasks"
       status = sh(returnStdout: true, script: "curl -sw '%{response_code}' -o /dev/null -u 'tasks:redhat1' -H 'Accept: application/json' -X GET http://tasks.${prefix}-tasks-dev.svc.cluster.local:8080/ws/tasks/1").trim()
       if (status != "200") {
@@ -165,7 +165,7 @@ stage('Build and Tag OpenShift Image') {
       if (status != "204") {
           error 'Integration Create Test Failed!'
       }
-
+*/
         }
       }
     }
@@ -175,8 +175,8 @@ stage('Build and Tag OpenShift Image') {
       steps {
          echo "Copy image to Nexus Container Registry"
         script {
-        sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds openshift:\$(oc whoami -t) --dest-creds admin:qwert12345 docker://image-registry.openshift-image-registry.svc.cluster.local:5000/${devProject}/tasks:${devTag} docker://nexus-registry.${prefix}-nexus.svc.cluster.local:5000/tasks:${devTag}"
-
+        //sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds openshift:\$(oc whoami -t) --dest-creds admin:qwert12345 docker://image-registry.openshift-image-registry.svc.cluster.local:5000/${devProject}/tasks:${devTag} docker://nexus-registry.${prefix}-nexus.svc.cluster.local:5000/tasks:${devTag}"
+sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds openshift:\$(oc whoami -t) --dest-creds admin:qwert12345 docker://docker-registry.default.svc.cluster.local:5000/${devProject}/tasks:${devTag} docker://docker-registry.default.svc.cluster.local:5000/tasks:${devTag}"
         // Tag the built image with the production tag.
       openshift.withCluster() {
         openshift.withProject("${prodProject}") {

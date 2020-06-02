@@ -90,10 +90,12 @@ oc patch dc/sonarqube --type=merge -p '{"spec": {"template": {"metadata": {"labe
 
 oc rollout resume dc sonarqube
 
-
+http://sonarqube-cicd-sonarqube.apps.os311.test.it.example.com/
 
 
 == Setup Jenkins
+
+jenkins-cicd-jenkins.apps.os311.test.it.example.com
 
 oc new-project ${GUID}-jenkins --display-name "${GUID} Shared Jenkins"
 
