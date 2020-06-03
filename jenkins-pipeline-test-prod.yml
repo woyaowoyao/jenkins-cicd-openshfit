@@ -1,0 +1,134 @@
+kind: "BuildConfig"
+apiVersion: build.openshift.io/v1
+metadata:
+  name: "pipeline-cicd-test-prod"
+spec:
+  triggers:
+  - github:
+      secret: 5Mlic4Le
+    type: GitHub
+  - generic:
+      secret: FiArdDBH
+    type: Generic
+
+  strategy:
+    type: "JenkinsPipeline"
+    jenkinsPipelineStrategy:
+      jenkinsfile: |
+        // Begin replacing Jenkinsfile here
+        // Set project names
+        def GUID       = "GUID"
+        def devProj    = "pipeline-$GUID-dev"
+        def testProj   = "pipeline-$GUID-test"
+        def prodProj   = "pipeline-$GUID-prod"
+        def svc_name   = "cotd2"
+        pipeline {
+          agent any
+          stages{
+            stage("Build"){
+              steps{
+                echo '*** Build Starting ***'
+                script{
+                  openshift.withCluster() {
+                    openshift.withProject("${devProj}") {
+                      openshift.selector('bc', 'cotd2').startBuild("--wait").logs('-f')
+                    }
+                  }
+                echo '*** Build Complete ***'
+                }
+              }
+            }
+            stage ("Deploy and Verify in Development Env") {
+              steps{
+                echo '*** Deployment Starting ***'
+                script{
+                  openshift.withCluster() {
+                    openshift.withProject("${devProj}") {
+                      // Deploy the cotd application in the devProject
+                      openshift.selector('dc', 'cotd2').rollout().latest();
+                      // Wait for application to be deployed
+                      def dc = openshift.selector("dc", "cotd2").object()
+                      while (dc.spec.replicas != dc.status.availableReplicas) {
+                        sleep 1
+                      }
+                    }
+                  }
+                }
+                echo '*** Deployment Complete ***'
+                echo '*** Service Verification Starting ***'
+                script{
+                  openshift.withCluster() {
+					          openshift.withProject("${devProj}") {
+                      //def svc = openshift.selector("svc", "cotd2")
+                      //openshiftVerifyService apiURL: 'https://openshift.default.svc.cluster.local', authToken: '', namespace: 'pipeline-${GUID}-dev', svcName: 'cotd2', verbose: 'false'
+                      def connected = openshift.verifyService("${svc_name}")
+                      if (connected) {
+                        echo "Able to connect to ${svc_name}"
+                      } else {
+                        echo "Unable to connect to ${svc_name}"
+                      }
+
+                      // openshiftTag(srcStream: 'cotd2', srcTag: 'latest', destStream: 'cotd2', destTag: 'testready')
+                      openshift.tag("${devProj}/cotd2:latest", "${devProj}/cotd2:testready")
+                    }
+                  }
+                }
+                echo '*** Service Verification Complete ***'
+              }
+            }
+            stage ('Deploy and Test in Testing Env') {
+              steps{
+                echo "*** Deploy testready build in pipeline-${GUID}-test project  ***"
+                script {
+                  openshift.withCluster() {
+                    openshift.withProject("${testProj}") {
+                      // openshiftDeploy apiURL: 'https://openshift.default.svc.cluster.local', authToken: '', depCfg: 'cotd2', namespace: 'pipeline-${GUID}-test', verbose: 'false', waitTime: ''
+                      // openshiftVerifyDeployment apiURL: 'https://openshift.default.svc.cluster.local', authToken: '', depCfg: 'cotd2', namespace: 'pipeline-${GUID}-test', replicaCount: '1', verbose: 'false', verifyReplicaCount: 'false', waitTime: '10'
+                      // Deploy the cotd application in the testProject
+                      openshift.selector('dc', 'cotd2').rollout().latest();
+                      // Wait for application to be deployed
+                      def dc = openshift.selector("dc", "cotd2").object()
+                      while (dc.spec.replicas != dc.status.availableReplicas) {
+                        sleep 1
+                      }
+                      // curl the testProject route to get cats
+                      // sh 'curl http://cotd2-pipeline-${GUID}-test.apps.shared-ocp4.dev4.openshift.opentlc.com/ | grep cats -q'
+                      def route = openshift.selector("route", "cotd2").object()
+                      def the_route = "${route.spec.host}"
+                      echo "route: ${the_route}"
+                      sh "curl -s http://${the_route}/item.php | grep -q cats"
+                    }
+                  }
+                }
+              }
+            }
+            stage ('Promote and Verify in Production Env') {
+              steps{
+                echo '*** Waiting for Input ***'
+	                script{
+	                  openshift.withCluster() {
+	                    openshift.withProject("${prodProj}") {
+	                      input message: 'Should we deploy to Production?', ok: "Promote"
+	                      // openshiftTag(srcStream: 'cotd2', srcTag: 'testready', destStream: 'cotd2', destTag: 'prodready')
+	                      openshift.tag("${devProj}/cotd2:testready", "${devProj}/cotd2:prodready")
+	                      // openshiftDeploy apiURL: 'https://openshift.default.svc.cluster.local', 
+							authToken: '', depCfg: 'cotd2', namespace: 'pipeline-${GUID}-prod', verbose: 'false', waitTime: ''
+	                      echo '*** Deploying to Production ***'
+	                      def dc = openshift.selector("dc", "cotd2").object()
+	                      while (dc.spec.replicas != dc.status.availableReplicas) {
+	                        sleep 1
+	                      }
+	                      // openshiftVerifyDeployment apiURL: 'https://openshift.default.svc.cluster.local', authToken: '', depCfg: 'cotd2', namespace: 'pipeline-${GUID}-prod', replicaCount: '1', verbose: 'false', verifyReplicaCount: 'false', waitTime: '10'
+	                      sleep 10
+	                      // test route
+	                      def route = openshift.selector("route", "cotd2").object()
+	                      def the_route = "${route.spec.host}"
+	                      echo "route: ${the_route}"
+	                      sh "curl -s http://${the_route}/item.php | grep -q cats"
+	                    }
+	                  }
+	                }
+	              }
+	            }
+	          }
+	        }
