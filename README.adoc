@@ -1,3 +1,4 @@
+oc get -o yaml --export dc,is,svc,route,secret,sa > jenkins.yaml
 = Jenkins CICD on OpenShift(java tasks)
 
 https://github.com/woyaowoyao/jenkins-cicd-openshfit
