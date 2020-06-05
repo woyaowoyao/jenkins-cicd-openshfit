@@ -1,4 +1,16 @@
 oc get -o yaml --export dc,is,svc,route,secret,sa > jenkins.yaml
+oc get -o yaml --export dc,is,svc,route,secret,sa > nexus.yaml
+oc get -o yaml --export dc,is,svc,route,secret,sa > jenkins.yaml  -n 405f2-jenkins
+oc get -o yaml --export dc,is,svc,route,secret,sa > sonarqube.yaml  -n 405f-sonarqube
+oc get -o yaml --export dc,is,svc,route,secret,sa > tekon-tutorial.yaml  -n pipelines-tutorial
+oc get -o yaml --export dc,is,svc,route,secret,sa > 405f-tasks-dev.yaml  -n 405f-tasks-dev
+oc get -o yaml --export dc,is,svc,route,secret,sa > 405f-tasks-prod.yaml  -n 405f-tasks-prod
+
+oc export bc,dc,service,route,sa --as-template=jenkins-template >jenkins-template.yaml -n 405f2-jenkins
+oc get -o yaml --export dc,is,svc,route,secret,sa > sonarqube-template.yaml  -n 405f-sonarqube
+oc get -o yaml --export dc,is,svc,route,secret,sa > tekon-tutorial-template.yaml  -n pipelines-tutorial
+oc get -o yaml --export dc,is,svc,route,secret,sa > 405f-tasks-dev-template.yaml  -n 405f-tasks-dev
+oc get -o yaml --export dc,is,svc,route,secret,sa > 405f-tasks-prod-template.yaml  -n 405f-tasks-prod
 = Jenkins CICD on OpenShift(java tasks)
 
 https://github.com/woyaowoyao/jenkins-cicd-openshfit
